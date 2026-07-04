@@ -1,4 +1,4 @@
-from src.analytics import calculate_document_stats, keyword_frequency
+from src.analytics import calculate_document_stats, important_keywords, keyword_frequency
 
 
 def test_calculate_document_stats_counts_empty_pages_and_reading_time():
@@ -21,3 +21,14 @@ def test_keyword_frequency_removes_common_words():
         ("climate", 2),
         ("paper", 1),
     ]
+
+
+def test_important_keywords_prefers_repeated_multi_word_terms():
+    keywords = important_keywords(
+        "The Transformer Architecture improves neural networks. "
+        "Transformer Architecture is useful for NLP systems.",
+        limit=3,
+    )
+
+    assert keywords[0]["keyword"] == "Transformer Architecture"
+    assert keywords[0]["occurrences"] == 2

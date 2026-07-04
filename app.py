@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
-from src.analytics import calculate_document_stats, keyword_frequency
+from src.analytics import calculate_document_stats, important_keywords
 from src.config import get_settings
 from src.exporters import summary_to_json, summary_to_markdown
 from src.pdf_reader import (
@@ -82,7 +82,7 @@ with st.sidebar:
     )
     page_range_text = st.text_input("Pages to use", placeholder="Example: 1-3, 7, 10-12")
     max_chars = st.slider("Chunk size", min_value=3000, max_value=14000, value=8000, step=1000)
-    top_keywords = st.slider("Keywords to show", min_value=5, max_value=25, value=10)
+    keyword_limit = st.slider("Important keywords to show", min_value=5, max_value=25, value=10)
 
     st.divider()
     st.write(f"Model: `{settings.gemini_model}`")
@@ -174,10 +174,10 @@ if uploaded_file:
             st.subheader("Page-wise Word Count")
             render_word_count_chart(df)
 
-            st.subheader("Top Keywords")
-            keywords = keyword_frequency(full_text, limit=top_keywords)
+            st.subheader("Important Keywords")
+            keywords = important_keywords(full_text, limit=keyword_limit)
             if keywords:
-                keyword_df = pd.DataFrame(keywords, columns=["keyword", "count"])
+                keyword_df = pd.DataFrame(keywords)
                 st.dataframe(keyword_df, use_container_width=True, hide_index=True)
             else:
                 st.write("No keywords found.")
