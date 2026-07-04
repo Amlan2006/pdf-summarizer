@@ -10,6 +10,7 @@ A Streamlit app for extracting PDF text, reviewing document analytics, generatin
 - Page-aware summary prompts
 - Ask questions about the uploaded PDF
 - Word count chart, reading time, empty page count, and keyword frequency
+- Topic-based YouTube video recommendations
 - Export summary as TXT, Markdown, or JSON
 - Export page statistics as CSV
 
@@ -22,7 +23,7 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Add your Gemini API key to `.env`.
+Add your Gemini API key to `.env`. For direct YouTube video recommendations, also add a YouTube Data API key as `YOUTUBE_API_KEY`.
 
 ## Run
 

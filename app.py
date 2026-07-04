@@ -12,6 +12,7 @@ from src.pdf_reader import (
     parse_page_ranges,
 )
 from src.summarizer import GeminiSummarizer
+from src.youtube_finder import recommend_videos
 
 
 st.set_page_config(
@@ -83,11 +84,14 @@ with st.sidebar:
     page_range_text = st.text_input("Pages to use", placeholder="Example: 1-3, 7, 10-12")
     max_chars = st.slider("Chunk size", min_value=3000, max_value=14000, value=8000, step=1000)
     keyword_limit = st.slider("Important keywords to show", min_value=5, max_value=25, value=10)
+    video_topic_limit = st.slider("Video topics to recommend", min_value=3, max_value=10, value=5)
 
     st.divider()
     st.write(f"Model: `{settings.gemini_model}`")
     if not settings.gemini_api_key:
         st.warning("Add GEMINI_API_KEY to .env before generating summaries or answers.")
+    if not settings.youtube_api_key:
+        st.info("Add YOUTUBE_API_KEY to .env for direct video recommendations.")
 
 uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
 
@@ -129,8 +133,8 @@ if uploaded_file:
         col3.metric("Reading Time", f"{stats['reading_minutes']} min")
         col4.metric("Empty Pages", stats["empty_pages"])
 
-        tab_summary, tab_ask, tab_stats, tab_text = st.tabs(
-            ["Summary", "Ask PDF", "Analytics", "Extracted Text"]
+        tab_summary, tab_ask, tab_stats, tab_videos, tab_text = st.tabs(
+            ["Summary", "Ask PDF", "Analytics", "Videos", "Extracted Text"]
         )
 
         with tab_summary:
@@ -188,6 +192,45 @@ if uploaded_file:
                 file_name="pdf_page_stats.csv",
                 mime="text/csv",
             )
+
+        with tab_videos:
+            st.subheader("Recommended YouTube Videos")
+            if not settings.youtube_api_key:
+                st.caption("Without a YouTube API key, this tab creates topic-based YouTube search links.")
+
+            if st.button("Find Videos", disabled=not settings.gemini_api_key):
+                summarizer = get_summarizer(settings.gemini_api_key, settings.gemini_model)
+
+                try:
+                    with st.spinner("Finding learning topics from the PDF..."):
+                        topics = summarizer.extract_learning_topics(
+                            pages,
+                            limit=video_topic_limit,
+                            max_chars=max_chars,
+                        )
+
+                    with st.spinner("Finding videos for those topics..."):
+                        videos = recommend_videos(
+                            topics,
+                            api_key=settings.youtube_api_key,
+                            videos_per_topic=2,
+                        )
+
+                    st.session_state["video_recommendations"] = videos
+                except Exception as exc:
+                    st.error(f"Could not find video recommendations: {exc}")
+
+            for video in st.session_state.get("video_recommendations", []):
+                cols = st.columns([1, 3])
+                if video["thumbnail"]:
+                    cols[0].image(video["thumbnail"], use_container_width=True)
+                else:
+                    cols[0].write(video["topic"])
+
+                cols[1].markdown(f"**[{video['title']}]({video['url']})**")
+                if video["channel"]:
+                    cols[1].caption(video["channel"])
+                cols[1].write(video["why_relevant"])
 
         with tab_text:
             st.subheader("Extracted Text")

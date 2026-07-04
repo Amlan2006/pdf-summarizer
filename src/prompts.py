@@ -62,3 +62,24 @@ Question:
 PDF context:
 {context}
 """
+
+
+def topic_extraction_prompt(context: str, limit: int) -> str:
+    return f"""
+Extract up to {limit} important learning topics from this PDF text.
+
+Return only JSON in this exact shape:
+[
+  {{
+    "topic": "short topic name",
+    "why_relevant": "one sentence explaining why it matters in this PDF",
+    "search_query": "YouTube search query for a high-quality explainer or lecture"
+  }}
+]
+
+Choose topics that a student or reader would likely want explained by a video.
+Prefer concrete concepts, methods, theories, named models, formulas, tools, or historical events.
+
+PDF text:
+{context}
+"""
