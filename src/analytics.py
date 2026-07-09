@@ -105,3 +105,5 @@ def important_keywords(text: str, limit: int = 10) -> list[dict]:
     scored_keywords.sort(key=lambda item: (-item["score"], -item["occurrences"], item["keyword"].lower()))
 
     return scored_keywords[:limit]
+
+print("hello world")
