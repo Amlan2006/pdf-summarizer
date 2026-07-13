@@ -14,5 +14,3 @@ def summary_to_json(summary: str, source_file: str) -> str:
     }
 
     return json.dumps(payload, indent=2)
-
-print("hello world")
